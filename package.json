@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "dev": "ts-node-dev --poll --respawn --transpile-only --clear --exit-child --watch src ./src/index.ts",
+    "dev": "cross-env NODE_ENV=development ts-node-dev --poll --respawn --transpile-only --clear --exit-child --watch src ./src/index.ts",
     "build": "rm -rf ./dist && node ./scripts/build.js",
     "format": "prettier --write ./src",
     "lint": "eslint --ext .ts,.js ./src",
@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
@@ -28,9 +29,11 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.4.4",
     "morgan": "^1.10.0",
+    "validator": "^13.7.0",
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
@@ -40,8 +43,10 @@
     "@types/jsonwebtoken": "^8.5.8",
     "@types/morgan": "^1.9.3",
     "@types/node": "^18.0.3",
+    "@types/validator": "^13.7.4",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
+    "cross-env": "^7.0.3",
     "esbuild": "^0.14.48",
     "eslint": "^8.19.0",
     "eslint-config-airbnb-base": "^15.0.0",

@@ -10,9 +10,10 @@ import xss from "xss-clean";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
-dotenv.config({
-  path: "./.env",
-});
+import { userRouter } from "./routes";
+import { globalErrorHandler } from "./controllers/error";
+
+dotenv.config();
 
 // const xss = require("xss-clean");
 
@@ -23,8 +24,8 @@ const main = async () => {
 
   const corsOptions = {
     origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
+    // methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    // preflightContinue: false,
     optionsSuccessStatus: 200,
   };
 
@@ -47,10 +48,13 @@ const main = async () => {
     })
   );
 
+  app.use("/api/users/", userRouter);
+
   app.use(() => {
     throw createHttpError(404, "Page not found");
   });
 
+  // @ts-ignore
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     console.log(err.message, err.statusCode);
 
@@ -58,16 +62,18 @@ const main = async () => {
       return next(err);
     }
 
-    res.status(err.statusCode || 500).json({ message: err.message });
+    return res.status(err.statusCode || 500).json({ message: err.message });
   };
 
   app.use(errorHandler);
+
+  app.use(globalErrorHandler);
 
   mongoose
     .connect(process.env.MONGODB_URI as string)
     .then(() => {
       app.listen(PORT, () => {
-        console.clear();
+        // console.clear();
         console.log(`Server is running on port ${PORT}`);
       });
     })

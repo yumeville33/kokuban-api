@@ -1,4 +1,4 @@
-import { ErrorResponse, ErrorType } from './types';
+import { ErrorResponse, ErrorType } from "./types";
 
 export class AppError extends Error {
   private statusCode: number;
@@ -7,6 +7,7 @@ export class AppError extends Error {
     super(message);
     this.name = this.constructor.name;
     this.statusCode = ErrorType[errorType];
+
     // eslint-disable-next-line no-console
     console.error({ errorType, message });
   }
