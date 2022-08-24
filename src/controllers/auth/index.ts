@@ -6,7 +6,7 @@ import { AppError } from "../../utils/responses/error";
 import { User, IUser } from "../../models";
 
 const signToken = (id: string) => {
-  jwt.sign({ id }, process.env.JWT_SECRET_KEY as string, {
+  return jwt.sign({ id }, process.env.JWT_SECRET_KEY as string, {
     expiresIn: process.env.JWT_EXPIRES_IN as string,
   });
 };
@@ -44,11 +44,25 @@ export const createSendToken = (
 };
 
 export const signup: RequestHandler<any, IUser> = catchAsync(
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line consistent-return
   async (req: Request, res: Response, next: NextFunction) => {
     const { firstName, lastName, email, password, passwordConfirm } = req.body;
 
-    const user = await User.create({
+    //  Check if email is already taken
+    const user = await User.findOne({ email });
+    if (user) {
+      return next(
+        new AppError("BadRequestException", "Email is already taken")
+      );
+    }
+
+    if (password !== passwordConfirm) {
+      return next(
+        new AppError("BadRequestException", "Passwords do not match")
+      );
+    }
+
+    const newUser = await User.create({
       firstName,
       lastName,
       email,
@@ -56,7 +70,7 @@ export const signup: RequestHandler<any, IUser> = catchAsync(
       passwordConfirm,
     });
 
-    createSendToken(user, 201, res);
+    createSendToken(newUser, 201, res);
   }
 );
 
