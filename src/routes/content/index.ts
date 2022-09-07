@@ -1,6 +1,11 @@
 import express from "express";
 
-import { saveContent, getUserContents } from "../../controllers/content";
+import {
+  saveContent,
+  getUserContents,
+  getOneUserContent,
+  getUserContentByCode,
+} from "../../controllers/content";
 
 const router = express.Router();
 
@@ -8,5 +13,7 @@ const router = express.Router();
 
 router.route("/:userId/save").post(saveContent).patch(saveContent);
 router.get("/:userId/getUserContent", getUserContents);
+router.get("/getOneUserContent/:contentId", getOneUserContent);
+router.get("/:contentCode/getOneContent", getUserContentByCode);
 
 export default router;

@@ -10,7 +10,7 @@ import xss from "xss-clean";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
-import { contentRouter, userRouter } from "./routes";
+import { contentRouter, studentAnswerRouter, userRouter } from "./routes";
 import { globalErrorHandler } from "./controllers/error";
 
 dotenv.config();
@@ -52,6 +52,7 @@ const main = async () => {
 
   app.use("/api/users/", userRouter);
   app.use("/api/content/", contentRouter);
+  app.use("/api/student/", studentAnswerRouter);
 
   app.use(() => {
     throw createHttpError(404, "Page not found");

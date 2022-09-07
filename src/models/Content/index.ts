@@ -22,6 +22,7 @@ export type PositionType = {
 export type SizeType = {
   height: number;
   width: number;
+  size: number;
 };
 
 export type IData = {
@@ -32,7 +33,7 @@ export type IData = {
 
 export interface ILine extends IData {
   size: number;
-  points: number[];
+  points: Array<number>;
 }
 
 export interface IShape extends IData {
@@ -60,53 +61,64 @@ export type ContentType = Array<ILine | IShape | IImage>;
 export interface IContent extends Document {
   content: ContentType;
   thumbnail: ImageType;
-  createdAt: Date | number;
-  updatedAt: Date | number;
+  createdAt: Date;
+  updatedAt: Date;
   user: Schema.Types.ObjectId;
+  code: string;
 }
 
-const contentSchema = new mongoose.Schema<IContent>({
-  content: [
-    {
-      id: Number,
-      toolType: String,
-      color: String,
-      size: {
-        width: Number,
-        height: Number,
-        size: Number,
-      },
-      radius: Number,
-      shapeType: String,
-      sides: Number,
-      originalSize: {
-        width: Number,
-        height: Number,
-      },
-      image: {
-        uri: {
-          type: Buffer,
-          contentType: String,
+const contentSchema = new mongoose.Schema<IContent>(
+  {
+    content: [
+      {
+        id: Number,
+        toolType: String,
+        color: String,
+        points: [{ type: Number }],
+        size: {
+          width: Number,
+          height: Number,
+          size: Number,
         },
-        extensionType: String,
+        radius: Number,
+        shapeType: String,
+        sides: Number,
+        originalSize: {
+          width: Number,
+          height: Number,
+        },
+        image: {
+          uri: {
+            type: Buffer,
+            contentType: String,
+          },
+          extensionType: String,
+        },
+        text: String,
+        position: {
+          x: Number,
+          y: Number,
+        },
       },
-      text: String,
+    ],
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
-  ],
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-  },
-  thumbnail: {
-    uri: {
-      type: Buffer,
-      contentType: String,
+    thumbnail: {
+      uri: {
+        type: Buffer,
+        contentType: String,
+      },
+      extensionType: String,
     },
-    extensionType: String,
+    code: String,
+    updatedAt: Date,
   },
-  createdAt: Date,
-  updatedAt: Date,
-});
+  {
+    timestamps: true,
+  }
+);
 
 const Content = mongoose.model("Content", contentSchema);
 
