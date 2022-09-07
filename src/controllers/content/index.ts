@@ -12,12 +12,8 @@ export const saveContent: RequestHandler<any, IContent> = catchAsync(
     const { userId } = req.params;
     const { contentId } = req.body;
 
-    console.log("userId", userId);
-
     // const user = await User.findOne({ email: userEmail });
     const user = await User.findById(userId);
-
-    console.log("user", user);
 
     if (!user) {
       return next(
@@ -126,8 +122,6 @@ export const getUserContents = catchAsync(
       );
     }
     const data = await Content.find({ user: userId }).sort({ updatedAt: -1 });
-    // const newData = data[0];
-    // console.log("image", bufferToBase64(data[0].thumbnail.uri));
 
     const newData: any = data.map((d) => {
       return {
