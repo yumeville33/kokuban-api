@@ -13,7 +13,14 @@ export const createStudentAnswer: RequestHandler =
     try {
       const { boardId } = req.params;
 
-      const { content, image, boardOwner, grade, studentName } = req.body;
+      const {
+        content,
+        image,
+        boardOwner,
+        studentName,
+        schoolName,
+        studentSection,
+      } = req.body;
 
       const newContent = content.map((item: any) => {
         const newItem = { ...item };
@@ -38,9 +45,10 @@ export const createStudentAnswer: RequestHandler =
         },
         boardRef: boardId,
         boardOwner,
-        grade,
+        grade: 0,
         studentName,
-        timeSubmitted: new Date(),
+        schoolName,
+        studentSection,
       };
 
       const studentAnswer = await StudentAnswer.create(studentAnswerInfo);

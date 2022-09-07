@@ -1,6 +1,5 @@
 import express, { ErrorRequestHandler } from "express";
 import mongoose from "mongoose";
-import createHttpError from "http-errors";
 import morgan from "morgan";
 import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
@@ -50,18 +49,18 @@ const main = async () => {
     })
   );
 
+  app.get("/health", (req, res) => {
+    res.status(200).json({
+      message: "Server is up and running",
+    });
+  });
+
   app.use("/api/users/", userRouter);
   app.use("/api/content/", contentRouter);
   app.use("/api/student/", studentAnswerRouter);
 
-  app.use(() => {
-    throw createHttpError(404, "Page not found");
-  });
-
   // @ts-ignore
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    console.log(err.message, err.statusCode);
-
     if (res.headersSent) {
       return next(err);
     }
@@ -82,7 +81,7 @@ const main = async () => {
       });
     })
     .catch(() => {
-      throw createHttpError(501, "Unable to connect to database");
+      console.log("Unable to connect");
     });
 };
 
