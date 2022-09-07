@@ -7,6 +7,8 @@ export interface IStudentAnswer extends IContent {
   boardRef: Schema.Types.ObjectId;
   boardOwner: Schema.Types.ObjectId;
   studentName: String;
+  schoolName: String;
+  studentSection: String;
   grade: Number;
   timeSubmitted: Date;
 }
@@ -65,7 +67,8 @@ const studentAnswerSchema = new mongoose.Schema<IStudentAnswer>(
       default: 0,
     },
     studentName: String,
-    timeSubmitted: Date,
+    schoolName: String,
+    studentSection: String,
   },
   {
     timestamps: true,
