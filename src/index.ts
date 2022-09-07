@@ -49,8 +49,12 @@ const main = async () => {
     })
   );
 
+  app.get("/", (req, res) => {
+    return res.send("Educapp API");
+  });
+
   app.get("/health", (req, res) => {
-    res.status(200).json({
+    return res.status(200).json({
       message: "Server is up and running",
     });
   });
