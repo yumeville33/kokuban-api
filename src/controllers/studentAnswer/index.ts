@@ -5,7 +5,7 @@ import { NextFunction, Response, RequestHandler, Request } from "express";
 import { AppError } from "../../utils/responses/error";
 // import { IStudentAnswer, StudentAnswer } from "../../models";
 import { StudentAnswer } from "../../models";
-import { base64ToBuffer } from "../../utils/imageBuffer";
+import { base64ToBuffer, bufferToBase64 } from "../../utils/imageBuffer";
 
 export const createStudentAnswer: RequestHandler =
   // eslint-disable-next-line consistent-return
@@ -69,18 +69,166 @@ export const getAllStudentAnswersOnBoard: RequestHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  const { boardId } = req.params;
+
+  console.log("boardId", boardId);
+
   try {
     const studentAnswers = await StudentAnswer.find({
-      boardRef: req.params.boardId,
+      boardRef: boardId,
+    });
+
+    console.log("studentAnswers", studentAnswers);
+
+    const newStudentAnswers: any = studentAnswers.map((item) => {
+      const newItem = {
+        _id: item._id,
+        boardOwner: item.boardOwner,
+        boardRef: item.boardRef,
+        content: item.content.map((c: any) => {
+          if (c.toolType === "image") {
+            return {
+              ...c,
+              image: {
+                uri: bufferToBase64(c.image.uri, c.image.extensionType),
+                extensionType: c.image.extensionType,
+              },
+            };
+          }
+          return c;
+        }),
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        grade: item.grade,
+        schoolName: item.schoolName,
+        studentName: item.studentName,
+        studentSection: item.studentSection,
+        image: {
+          uri: bufferToBase64(item.image.uri, item.image.extensionType),
+          extensionType: item.image.extensionType,
+        },
+      };
+
+      return newItem;
     });
 
     return res.status(200).json({
       status: "success",
       data: {
-        studentAnswers,
+        studentAnswers: newStudentAnswers,
       },
     });
   } catch (error: any) {
     return next(new AppError("BadRequestException", error.message));
+  }
+};
+
+export const getOneStudentAnswersOnBoard: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { answerId } = req.params;
+
+  try {
+    const data = await StudentAnswer.findById(answerId);
+
+    console.log("answerId", answerId);
+    console.log("data", data);
+    if (!data) {
+      return next(
+        new AppError(
+          "BadRequestException",
+          "Something wen't wrong! Please try again later."
+        )
+      );
+    }
+
+    console.log("bentong");
+    const newData: any = {
+      image: {
+        uri: bufferToBase64(data.image.uri, data.image.extensionType),
+        extensionType: data.image.extensionType,
+      },
+      content: data.content.map((item: any) => {
+        if (item.toolType === "image") {
+          return {
+            id: item.id,
+            toolType: item.toolType,
+            size: item.size,
+            originalSize: item.originalSize,
+            image: {
+              uri: bufferToBase64(item.image.uri, item.image.extensionType),
+              extensionType: item.image.extensionType,
+            },
+            position: item.position,
+            // eslint-disable-next-line no-underscore-dangle
+            _id: item._id,
+          };
+        }
+        return item;
+      }),
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      grade: data.grade,
+      schoolName: data.schoolName,
+      studentName: data.studentName,
+      studentSection: data.studentSection,
+      _id: data._id,
+      boardOwner: data.boardOwner,
+      boardRef: data.boardRef,
+    };
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        studentAnswer: newData,
+      },
+    });
+  } catch (error) {
+    return next(
+      new AppError(
+        "BadRequestException",
+        "Something wen't wrong! Please try again later."
+      )
+    );
+  }
+};
+
+export const updateStudentGrade = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { answerId } = req.params;
+  try {
+    const data = await StudentAnswer.findByIdAndUpdate(
+      answerId,
+      { grade: req.body.grade },
+      { new: true }
+    );
+
+    if (!data) {
+      return next(
+        new AppError(
+          "BadRequestException",
+          "Something wen't wrong! Please try again later."
+        )
+      );
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        studentAnswer: data,
+      },
+    });
+  } catch (error) {
+    return next(
+      new AppError(
+        "BadRequestException",
+        "Something wen't wrong! Please try again later."
+      )
+    );
   }
 };
