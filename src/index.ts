@@ -33,7 +33,7 @@ const main = async () => {
   app.use(helmet());
 
   if (process.env.NODE_ENV === "development") {
-    app.use(morgan("dev"));
+    app.use(morgan("tiny"));
   }
 
   // app.use(express.json());
@@ -60,8 +60,8 @@ const main = async () => {
   });
 
   app.use("/api/users/", userRouter);
-  app.use("/api/content/", contentRouter);
-  app.use("/api/student/", studentAnswerRouter);
+  app.use("/api/contents/", contentRouter);
+  app.use("/api/students/", studentAnswerRouter);
 
   // @ts-ignore
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
@@ -76,17 +76,18 @@ const main = async () => {
 
   app.use(globalErrorHandler);
 
-  mongoose
-    .connect(process.env.MONGODB_URI as string)
-    .then(() => {
-      app.listen(PORT, () => {
-        // console.clear();
-        console.log(`Server is running on port ${PORT}`);
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+
+    mongoose
+      .connect(process.env.MONGODB_URI as string)
+      .then(() => {
+        console.log("Connected to MongoDB");
+      })
+      .catch((err) => {
+        console.log(err);
       });
-    })
-    .catch(() => {
-      console.log("Unable to connect");
-    });
+  });
 };
 
 main();
