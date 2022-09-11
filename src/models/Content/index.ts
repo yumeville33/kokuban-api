@@ -65,6 +65,7 @@ export interface IContent extends Document {
   updatedAt: Date;
   user: Schema.Types.ObjectId;
   code: string;
+  title: string;
 }
 
 const contentSchema = new mongoose.Schema<IContent>(
@@ -114,6 +115,7 @@ const contentSchema = new mongoose.Schema<IContent>(
     },
     code: String,
     updatedAt: Date,
+    title: String,
   },
   {
     timestamps: true,
