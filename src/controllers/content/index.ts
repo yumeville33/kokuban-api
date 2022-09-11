@@ -58,7 +58,7 @@ export const saveContent: RequestHandler<any, IContent> = catchAsync(
       }
     }
 
-    const data = { ...req.body };
+    const data = { ...req.body, title: req.body.title.trim() || "Whiteboard" };
     data.content = newContent;
     delete data.contentId;
 
@@ -146,6 +146,7 @@ export const getUserContents = catchAsync(
         code: d.code,
         user: d.user,
         _id: d._id,
+        title: d.title,
       };
     });
 
@@ -218,6 +219,7 @@ export const getOneUserContent = catchAsync(
       code: data.code,
       user: data.user,
       _id: data._id,
+      title: data.title,
     };
 
     res.status(200).json({
@@ -262,3 +264,82 @@ export const getUserContentByCode = catchAsync(
     });
   }
 );
+
+export const getOtherUsersContents = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { userId } = req.params;
+
+  try {
+    if (!userId) {
+      return next(
+        new AppError(
+          "BadRequestException",
+          "Something wen't wrong! Please try again later."
+        )
+      );
+    }
+
+    // find contents where _id is not equal to userId
+    const otherUserContents = await Content.find({
+      user: { $ne: userId },
+    }).sort({
+      updatedAt: -1,
+    });
+
+    console.log("otherUserContents length", otherUserContents.length);
+
+    // convert buffer to base64
+
+    const newData: any = otherUserContents.map((d) => {
+      return {
+        createdAt: d.createdAt,
+        updatedAt: d.updatedAt,
+        thumbnail: {
+          uri: bufferToBase64(d.thumbnail.uri, d.thumbnail.extensionType),
+          extensionType: d.thumbnail.extensionType,
+        },
+        content: d.content.map((item: any) => {
+          if (item.toolType === "image") {
+            return {
+              id: item.id,
+              toolType: item.toolType,
+              size: item.size,
+              originalSize: item.originalSize,
+              image: {
+                uri: bufferToBase64(item.image.uri, item.image.extensionType),
+                extensionType: item.image.extensionType,
+              },
+              position: item.position,
+              // eslint-disable-next-line no-underscore-dangle
+              _id: item._id,
+            };
+          }
+          return item;
+        }),
+        code: d.code,
+        user: d.user,
+        _id: d._id,
+        title: d.title,
+      };
+    });
+
+    console.log("newData length", newData.length);
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        data: newData,
+      },
+    });
+  } catch (error) {
+    return next(
+      new AppError(
+        "BadRequestException",
+        "Something wen't wrong! Please try again later."
+      )
+    );
+  }
+};
