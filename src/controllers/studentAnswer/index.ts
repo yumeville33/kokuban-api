@@ -71,14 +71,10 @@ export const getAllStudentAnswersOnBoard: RequestHandler = async (
 ) => {
   const { boardId } = req.params;
 
-  console.log("boardId", boardId);
-
   try {
     const studentAnswers = await StudentAnswer.find({
       boardRef: boardId,
     });
-
-    console.log("studentAnswers", studentAnswers);
 
     const newStudentAnswers: any = studentAnswers.map((item) => {
       const newItem = {
@@ -133,8 +129,6 @@ export const getOneStudentAnswersOnBoard: RequestHandler = async (
   try {
     const data = await StudentAnswer.findById(answerId);
 
-    console.log("answerId", answerId);
-    console.log("data", data);
     if (!data) {
       return next(
         new AppError(
@@ -144,7 +138,6 @@ export const getOneStudentAnswersOnBoard: RequestHandler = async (
       );
     }
 
-    console.log("bentong");
     const newData: any = {
       image: {
         uri: bufferToBase64(data.image.uri, data.image.extensionType),

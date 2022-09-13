@@ -289,8 +289,6 @@ export const getOtherUsersContents = async (
       updatedAt: -1,
     });
 
-    console.log("otherUserContents length", otherUserContents.length);
-
     // convert buffer to base64
 
     const newData: any = otherUserContents.map((d) => {
@@ -325,8 +323,6 @@ export const getOtherUsersContents = async (
         title: d.title,
       };
     });
-
-    console.log("newData length", newData.length);
 
     return res.status(200).json({
       status: "success",
