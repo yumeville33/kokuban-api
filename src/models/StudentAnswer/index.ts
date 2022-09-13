@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 import { IContent, ImageType } from "../Content";
 
 export interface IStudentAnswer extends IContent {
-  image: ImageType;
+  image: ImageType | null;
   boardRef: Schema.Types.ObjectId;
   boardOwner: Schema.Types.ObjectId;
   studentName: String;

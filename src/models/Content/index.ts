@@ -60,7 +60,7 @@ export type ContentType = Array<ILine | IShape | IImage>;
 
 export interface IContent extends Document {
   content: ContentType;
-  thumbnail: ImageType;
+  thumbnail: ImageType | null;
   createdAt: Date;
   updatedAt: Date;
   user: Schema.Types.ObjectId;
