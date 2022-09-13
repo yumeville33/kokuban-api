@@ -74,7 +74,8 @@ export const getAllStudentAnswersOnBoard: RequestHandler = async (
   try {
     const studentAnswers = await StudentAnswer.find({
       boardRef: boardId,
-    });
+      image: { $ne: null },
+    }).sort({ updatedAt: -1 });
 
     const newStudentAnswers: any = studentAnswers.map((item) => {
       const newItem = {
@@ -100,9 +101,48 @@ export const getAllStudentAnswersOnBoard: RequestHandler = async (
         studentName: item.studentName,
         studentSection: item.studentSection,
         image: {
-          uri: bufferToBase64(item.image.uri, item.image.extensionType),
-          extensionType: item.image.extensionType,
+          uri: bufferToBase64(item.image!.uri, item.image!.extensionType),
+          extensionType: item.image!.extensionType,
         },
+      };
+
+      return newItem;
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        studentAnswers: newStudentAnswers,
+      },
+    });
+  } catch (error: any) {
+    return next(new AppError("BadRequestException", error.message));
+  }
+};
+
+export const getAllStudentAnswersOnBoardTable: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { boardId } = req.params;
+
+  try {
+    const studentAnswers = await StudentAnswer.find({
+      boardRef: boardId,
+    }).sort({ updatedAt: -1 });
+
+    const newStudentAnswers: any = studentAnswers.map((item) => {
+      const newItem = {
+        _id: item._id,
+        boardOwner: item.boardOwner,
+        boardRef: item.boardRef,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        grade: item.grade,
+        schoolName: item.schoolName,
+        studentName: item.studentName,
+        studentSection: item.studentSection,
       };
 
       return newItem;
@@ -140,8 +180,8 @@ export const getOneStudentAnswersOnBoard: RequestHandler = async (
 
     const newData: any = {
       image: {
-        uri: bufferToBase64(data.image.uri, data.image.extensionType),
-        extensionType: data.image.extensionType,
+        uri: bufferToBase64(data.image!.uri, data.image!.extensionType),
+        extensionType: data.image!.extensionType,
       },
       content: data.content.map((item: any) => {
         if (item.toolType === "image") {
@@ -215,6 +255,40 @@ export const updateStudentGrade = async (
       data: {
         studentAnswer: data,
       },
+    });
+  } catch (error) {
+    return next(
+      new AppError(
+        "BadRequestException",
+        "Something wen't wrong! Please try again later."
+      )
+    );
+  }
+};
+
+export const setStudentAnswerImageToNull = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = await StudentAnswer.findByIdAndUpdate(
+      req.params.answerId,
+      { image: null },
+      { new: true }
+    );
+
+    if (!data) {
+      return next(
+        new AppError(
+          "BadRequestException",
+          "Something wen't wrong! Please try again later."
+        )
+      );
+    }
+
+    return res.status(200).json({
+      status: "success",
     });
   } catch (error) {
     return next(

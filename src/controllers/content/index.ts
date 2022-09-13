@@ -63,7 +63,7 @@ export const saveContent: RequestHandler<any, IContent> = catchAsync(
     delete data.contentId;
 
     const newData: IContent = data;
-    newData.thumbnail.uri = base64ToBuffer(thumbnail.uri);
+    newData.thumbnail!.uri = base64ToBuffer(thumbnail.uri);
     newData.code = uniqueCode;
 
     if (req.method === "POST") {
@@ -121,15 +121,18 @@ export const getUserContents = catchAsync(
         )
       );
     }
-    const data = await Content.find({ user: userId }).sort({ updatedAt: -1 });
+    const data = await Content.find({
+      user: userId,
+      thumbnail: { $ne: null },
+    }).sort({ updatedAt: -1 });
 
     const newData: any = data.map((d) => {
       return {
         createdAt: d.createdAt,
         updatedAt: d.updatedAt,
         thumbnail: {
-          uri: bufferToBase64(d.thumbnail.uri, d.thumbnail.extensionType),
-          extensionType: d.thumbnail.extensionType,
+          uri: bufferToBase64(d.thumbnail!.uri, d.thumbnail!.extensionType),
+          extensionType: d.thumbnail!.extensionType,
         },
         content: d.content.map((item: any) => {
           if (item.toolType === "image") {
@@ -195,8 +198,8 @@ export const getOneUserContent = catchAsync(
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       thumbnail: {
-        uri: bufferToBase64(data.thumbnail.uri, data.thumbnail.extensionType),
-        extensionType: data.thumbnail.extensionType,
+        uri: bufferToBase64(data.thumbnail!.uri, data.thumbnail!.extensionType),
+        extensionType: data.thumbnail!.extensionType,
       },
       content: data.content.map((item: any) => {
         if (item.toolType === "image") {
@@ -285,6 +288,7 @@ export const getOtherUsersContents = async (
     // find contents where _id is not equal to userId
     const otherUserContents = await Content.find({
       user: { $ne: userId },
+      thumbnail: { $ne: null },
     }).sort({
       updatedAt: -1,
     });
@@ -296,8 +300,8 @@ export const getOtherUsersContents = async (
         createdAt: d.createdAt,
         updatedAt: d.updatedAt,
         thumbnail: {
-          uri: bufferToBase64(d.thumbnail.uri, d.thumbnail.extensionType),
-          extensionType: d.thumbnail.extensionType,
+          uri: bufferToBase64(d.thumbnail!.uri, d.thumbnail!.extensionType),
+          extensionType: d.thumbnail!.extensionType,
         },
         content: d.content.map((item: any) => {
           if (item.toolType === "image") {
@@ -329,6 +333,44 @@ export const getOtherUsersContents = async (
       data: {
         data: newData,
       },
+    });
+  } catch (error) {
+    return next(
+      new AppError(
+        "BadRequestException",
+        "Something wen't wrong! Please try again later."
+      )
+    );
+  }
+};
+
+export const setThumbnailToNull = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { contentId } = req.params;
+
+    const content = await Content.findByIdAndUpdate(
+      contentId,
+      {
+        thumbnail: null,
+      },
+      { new: true }
+    );
+
+    if (!content) {
+      return next(
+        new AppError(
+          "BadRequestException",
+          "Something wen't wrong! Please try again later."
+        )
+      );
+    }
+
+    return res.status(200).json({
+      status: "success",
     });
   } catch (error) {
     return next(

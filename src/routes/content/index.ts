@@ -6,6 +6,7 @@ import {
   getOneUserContent,
   getUserContentByCode,
   getOtherUsersContents,
+  setThumbnailToNull,
 } from "../../controllers/content";
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.get("/:userId/getUserContent", getUserContents);
 router.get("/getOneUserContent/:contentId", getOneUserContent);
 router.get("/:contentCode/getOneContent", getUserContentByCode);
 router.get("/otherContents/:userId", getOtherUsersContents);
+router.patch("/delete/:contentId", setThumbnailToNull);
 
 export default router;
