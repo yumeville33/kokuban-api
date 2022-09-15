@@ -45,8 +45,8 @@ export interface IShape extends IData {
 }
 
 export type ImageType = {
-  uri: Buffer;
-  extensionType: string;
+  url: string;
+  ref: string;
 };
 
 export interface IImage extends IData {
@@ -90,11 +90,8 @@ const contentSchema = new mongoose.Schema<IContent>(
           height: Number,
         },
         image: {
-          uri: {
-            type: Buffer,
-            contentType: String,
-          },
-          extensionType: String,
+          url: String,
+          ref: String,
         },
         text: String,
         position: {
@@ -108,11 +105,8 @@ const contentSchema = new mongoose.Schema<IContent>(
       ref: "User",
     },
     thumbnail: {
-      uri: {
-        type: Buffer,
-        contentType: String,
-      },
-      extensionType: String,
+      url: String,
+      ref: String,
     },
     code: String,
     updatedAt: Date,

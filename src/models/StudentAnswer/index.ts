@@ -34,11 +34,8 @@ const studentAnswerSchema = new mongoose.Schema<IStudentAnswer>(
           height: Number,
         },
         image: {
-          uri: {
-            type: Buffer,
-            contentType: String,
-          },
-          extensionType: String,
+          url: String,
+          ref: String,
         },
         text: String,
         position: {
@@ -48,11 +45,8 @@ const studentAnswerSchema = new mongoose.Schema<IStudentAnswer>(
       },
     ],
     image: {
-      uri: {
-        type: Buffer,
-        contentType: String,
-      },
-      extensionType: String,
+      url: String,
+      ref: String,
     },
     boardRef: {
       type: Schema.Types.ObjectId,

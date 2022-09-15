@@ -4,7 +4,6 @@ import randomstring from "randomstring";
 import { catchAsync } from "../../utils/catchAsync";
 import { AppError } from "../../utils/responses/error";
 import { Content, IContent, User } from "../../models";
-import { base64ToBuffer, bufferToBase64 } from "../../utils/imageBuffer";
 
 export const saveContent: RequestHandler<any, IContent> = catchAsync(
   // eslint-disable-next-line consistent-return
@@ -24,22 +23,6 @@ export const saveContent: RequestHandler<any, IContent> = catchAsync(
       );
     }
 
-    const { thumbnail, content } = req.body;
-    const newContent = content.map((item: any) => {
-      const newItem = { ...item };
-
-      if (newItem.toolType === "image") {
-        return {
-          ...newItem,
-          image: {
-            uri: base64ToBuffer(newItem.image.uri),
-            extensionType: newItem.image.extensionType,
-          },
-        };
-      }
-      return newItem;
-    });
-
     let isCodeUnique = false;
     let uniqueCode = "";
 
@@ -58,12 +41,10 @@ export const saveContent: RequestHandler<any, IContent> = catchAsync(
       }
     }
 
-    const data = { ...req.body, title: req.body.title.trim() || "Whiteboard" };
-    data.content = newContent;
+    const data = { ...req.body, title: req.body.title.trim() || "Unknown" };
     delete data.contentId;
 
     const newData: IContent = data;
-    newData.thumbnail!.uri = base64ToBuffer(thumbnail.uri);
     newData.code = uniqueCode;
 
     if (req.method === "POST") {
@@ -126,37 +107,10 @@ export const getUserContents = catchAsync(
       thumbnail: { $ne: null },
     }).sort({ updatedAt: -1 });
 
-    const newData: any = data.map((d) => {
-      return {
-        createdAt: d.createdAt,
-        updatedAt: d.updatedAt,
-        thumbnail: {
-          uri: bufferToBase64(d.thumbnail!.uri, d.thumbnail!.extensionType),
-          extensionType: d.thumbnail!.extensionType,
-        },
-        content: d.content.map((item: any) => {
-          if (item.toolType === "image") {
-            return {
-              ...item,
-              image: {
-                uri: bufferToBase64(item.image.uri, item.image.extensionType),
-                extensionType: item.image.extensionType,
-              },
-            };
-          }
-          return item;
-        }),
-        code: d.code,
-        user: d.user,
-        _id: d._id,
-        title: d.title,
-      };
-    });
-
     res.status(200).json({
       status: "success",
       data: {
-        data: newData,
+        data,
       },
     });
   }
@@ -167,24 +121,6 @@ export const getOneUserContent = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { contentId } = req.params;
 
-    // if (!userId || !contentId) {
-    //   return next(
-    //     new AppError(
-    //       "BadRequestException",
-    //       "Something wen't wrong! Please try again later."
-    //     )
-    //   );
-    // }
-
-    // const user = await User.findById(userId);
-    // if (!user) {
-    //   return next(
-    //     new AppError(
-    //       "BadRequestException",
-    //       "Something wen't wrong! Please try again later."
-    //     )
-    //   );
-    // }
     const data = await Content.findById(contentId);
     if (!data) {
       return next(
@@ -194,41 +130,11 @@ export const getOneUserContent = catchAsync(
         )
       );
     }
-    const newData: any = {
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-      thumbnail: {
-        uri: bufferToBase64(data.thumbnail!.uri, data.thumbnail!.extensionType),
-        extensionType: data.thumbnail!.extensionType,
-      },
-      content: data.content.map((item: any) => {
-        if (item.toolType === "image") {
-          return {
-            id: item.id,
-            toolType: item.toolType,
-            size: item.size,
-            originalSize: item.originalSize,
-            image: {
-              uri: bufferToBase64(item.image.uri, item.image.extensionType),
-              extensionType: item.image.extensionType,
-            },
-            position: item.position,
-            // eslint-disable-next-line no-underscore-dangle
-            _id: item._id,
-          };
-        }
-        return item;
-      }),
-      code: data.code,
-      user: data.user,
-      _id: data._id,
-      title: data.title,
-    };
 
     res.status(200).json({
       status: "success",
       data: {
-        data: newData,
+        data,
       },
     });
   }
@@ -293,45 +199,10 @@ export const getOtherUsersContents = async (
       updatedAt: -1,
     });
 
-    // convert buffer to base64
-
-    const newData: any = otherUserContents.map((d) => {
-      return {
-        createdAt: d.createdAt,
-        updatedAt: d.updatedAt,
-        thumbnail: {
-          uri: bufferToBase64(d.thumbnail!.uri, d.thumbnail!.extensionType),
-          extensionType: d.thumbnail!.extensionType,
-        },
-        content: d.content.map((item: any) => {
-          if (item.toolType === "image") {
-            return {
-              id: item.id,
-              toolType: item.toolType,
-              size: item.size,
-              originalSize: item.originalSize,
-              image: {
-                uri: bufferToBase64(item.image.uri, item.image.extensionType),
-                extensionType: item.image.extensionType,
-              },
-              position: item.position,
-              // eslint-disable-next-line no-underscore-dangle
-              _id: item._id,
-            };
-          }
-          return item;
-        }),
-        code: d.code,
-        user: d.user,
-        _id: d._id,
-        title: d.title,
-      };
-    });
-
     return res.status(200).json({
       status: "success",
       data: {
-        data: newData,
+        data: otherUserContents,
       },
     });
   } catch (error) {
