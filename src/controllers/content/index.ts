@@ -5,16 +5,87 @@ import { catchAsync } from "../../utils/catchAsync";
 import { AppError } from "../../utils/responses/error";
 import { Content, IContent, User } from "../../models";
 
-export const saveContent: RequestHandler<any, IContent> = catchAsync(
+export const saveContent: RequestHandler<any, IContent> =
   // eslint-disable-next-line consistent-return
   async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params;
     const { contentId } = req.body;
 
-    // const user = await User.findOne({ email: userEmail });
-    const user = await User.findById(userId);
+    try {
+      // const user = await User.findOne({ email: userEmail });
+      const user = await User.findById(userId);
 
-    if (!user) {
+      if (!user) {
+        return next(
+          new AppError(
+            "BadRequestException",
+            "Something wen't wrong! Please try again later."
+          )
+        );
+      }
+
+      let isCodeUnique = false;
+      let uniqueCode = "";
+
+      while (!isCodeUnique) {
+        const code = randomstring.generate({
+          length: 8,
+          charset: "alphanumeric",
+        });
+
+        // eslint-disable-next-line no-await-in-loop
+        const _content = await Content.findOne({ code });
+
+        if (!_content) {
+          isCodeUnique = true;
+          uniqueCode = code;
+        }
+      }
+
+      const data = {
+        ...req.body,
+        title: (req.body.title && req.body.title.trim()) || null,
+      };
+      delete data.contentId;
+
+      const newData: IContent = data;
+      newData.code = uniqueCode;
+
+      if (req.method === "POST") {
+        const date = new Date();
+        newData.createdAt = date;
+        newData.updatedAt = date;
+        newData.user = user._id;
+
+        const postData = await Content.create(newData);
+        res.status(200).json({
+          status: "success",
+          data: {
+            data: postData,
+          },
+        });
+      }
+
+      if (req.method === "PATCH") {
+        newData.updatedAt = new Date();
+
+        const currentData = await Content.findByIdAndUpdate(
+          contentId,
+          newData,
+          {
+            new: true,
+          }
+        );
+
+        res.status(200).json({
+          status: "success",
+          data: {
+            data: currentData,
+          },
+        });
+      }
+    } catch (error) {
+      console.log("error", error);
       return next(
         new AppError(
           "BadRequestException",
@@ -22,62 +93,7 @@ export const saveContent: RequestHandler<any, IContent> = catchAsync(
         )
       );
     }
-
-    let isCodeUnique = false;
-    let uniqueCode = "";
-
-    while (!isCodeUnique) {
-      const code = randomstring.generate({
-        length: 8,
-        charset: "alphanumeric",
-      });
-
-      // eslint-disable-next-line no-await-in-loop
-      const _content = await Content.findOne({ code });
-
-      if (!_content) {
-        isCodeUnique = true;
-        uniqueCode = code;
-      }
-    }
-
-    const data = { ...req.body, title: req.body.title.trim() || "Unknown" };
-    delete data.contentId;
-
-    const newData: IContent = data;
-    newData.code = uniqueCode;
-
-    if (req.method === "POST") {
-      const date = new Date();
-      newData.createdAt = date;
-      newData.updatedAt = date;
-      newData.user = user._id;
-
-      const postData = await Content.create(newData);
-      res.status(200).json({
-        status: "success",
-        data: {
-          data: postData,
-        },
-      });
-    }
-
-    if (req.method === "PATCH") {
-      newData.updatedAt = new Date();
-
-      const currentData = await Content.findByIdAndUpdate(contentId, newData, {
-        new: true,
-      });
-
-      res.status(200).json({
-        status: "success",
-        data: {
-          data: currentData,
-        },
-      });
-    }
-  }
-);
+  };
 
 export const getUserContents = catchAsync(
   // eslint-disable-next-line consistent-return
