@@ -10,7 +10,9 @@ export interface IStudentAnswer extends IContent {
   schoolName: String;
   studentSection: String;
   grade: Number;
+  schoolYear: String;
   timeSubmitted: Date;
+  teacherBoardTitle: String;
 }
 
 const studentAnswerSchema = new mongoose.Schema<IStudentAnswer>(
@@ -56,10 +58,12 @@ const studentAnswerSchema = new mongoose.Schema<IStudentAnswer>(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    teacherBoardTitle: String,
     grade: {
       type: Number,
       default: 0,
     },
+    schoolYear: String,
     studentName: String,
     schoolName: String,
     studentSection: String,
