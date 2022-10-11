@@ -98,9 +98,18 @@ export const saveContent: RequestHandler<any, IContent> =
 export const getUserContents = catchAsync(
   // eslint-disable-next-line consistent-return
   async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.params;
+    const { userId, forAnswer } = req.params;
 
     if (!userId) {
+      return next(
+        new AppError(
+          "BadRequestException",
+          "Something wen't wrong! Please try again later."
+        )
+      );
+    }
+
+    if (!forAnswer) {
       return next(
         new AppError(
           "BadRequestException",
@@ -118,9 +127,19 @@ export const getUserContents = catchAsync(
         )
       );
     }
+
+    const isForAnswer = forAnswer.toLowerCase() === "yes";
+
+    const otherFields: any = {};
+
+    if (!isForAnswer) {
+      otherFields.thumbnail = { $ne: null };
+    }
+
     const data = await Content.find({
       user: userId,
-      thumbnail: { $ne: null },
+      // thumbnail: { $ne: null },
+      ...otherFields,
     }).sort({ updatedAt: -1 });
 
     res.status(200).json({
